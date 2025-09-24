@@ -137,47 +137,46 @@ pub fn generate_module(name: String) -> Result<()> {
     generate_dto(name.clone())?;
     generate_entity(name.clone())?;
 
-    // Now update main.rs
+    // Update main.rs
     let main_path = Path::new("src/main.rs");
     let mut content = String::new();
+    fs::File::open(&main_path)?.read_to_string(&mut content)?;
 
-    {
-        let mut file = fs::File::open(&main_path)?;
-        file.read_to_string(&mut content)?;
-    }
-
-    // 1. Ensure `mod {name};` is present
+    // 1. Insert `mod {name};` after the last `use ...;`
     let mod_decl = format!("mod {};", name);
     if !content.contains(&mod_decl) {
-        // Insert after the last `use ...;`
-        if let Some(pos) = content.rfind(';') {
-            let (head, tail) = content.split_at(pos + 1);
-            content = format!("{}\n{}\n{}", head, mod_decl, tail);
+        if let Some(pos) = content.rfind("use ") {
+            // Find end of line of last use statement
+            if let Some(end) = content[pos..].find(';') {
+                let insert_pos = pos + end + 1;
+                content.insert_str(insert_pos, &format!("\n{}", mod_decl));
+            }
         } else {
-            // fallback: prepend at top
             content = format!("{}\n{}", mod_decl, content);
         }
     }
 
-    // 2. Ensure `.nest("/name", {name}::routes())` is added
-    let nest_line = format!(".nest(\"/{0}\", {0}::routes())", name);
+    // 2. Insert `.nest("/name", name::routes())` inside Router::new() chain
+    let nest_line = format!("        .nest(\"/{0}\", {0}::routes())", name);
     if !content.contains(&nest_line) {
-        // Insert before `;` of Router chain (after .route(...))
-        if let Some(pos) = content.find("// Run the app") {
-            let (head, tail) = content.split_at(pos);
-            content = format!("{}    {}\n\n{}", head, nest_line, tail);
+        // Find the line with `Router::new()`
+        if let Some(pos) = content.find("Router::new()") {
+            // Find the end of that line or the next semicolon
+            if let Some(chain_end) = content[pos..].find(';') {
+                // Insert before semicolon
+                let insert_pos = pos + chain_end;
+                content.insert_str(insert_pos, &format!("\n{}", nest_line));
+            }
         }
     }
 
-    // Write back updated content
-    let mut file = fs::File::create(&main_path)?;
-    file.write_all(content.as_bytes())?;
-
+    fs::File::create(&main_path)?.write_all(content.as_bytes())?;
     println!("main.rs updated with module `{}`", name);
-
     println!("Module {} generated successfully!", name);
+
     Ok(())
 }
+
 
 
 

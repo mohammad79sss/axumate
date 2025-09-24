@@ -2,6 +2,9 @@
 name = "axumate"
 version = "0.1.0"
 edition = "2024"
+authors = ["Mohammad Hossein Sadeghi <mh.sadeghi.dev@gmail.com>"]
+description = "a powerful CLI for Axum framework inspired by NestJS CLI"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.100"

@@ -19,7 +19,7 @@ pub fn create_new_project(name: String) -> Result<()> {
     let project_dir = Path::new(&name);
 
     // Step 2: Add dependencies using `cargo add`
-    for dep in &["axum", "tokio@1 --features full"] {
+    for dep in &["axum", "tokio@1 --features full", "once_cell", "serde --features derive"] {
         let status = Command::new("cargo")
             .current_dir(project_dir)
             .arg("add")
