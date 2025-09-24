@@ -36,7 +36,6 @@ enum GenerateKind {
     Entity { name: String },
     /// Generate a dto
     DTO { name: String },
-    /// Generate a module
 /*    Module { name: String },*/
 }
 

@@ -1,44 +1,132 @@
 use anyhow::Result;
 use std::fs;
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
+use crate::utils::file::*;
 
 use super::templates::generate_templates::{
-    controller_template,
-    service_template,
-    dto_template,
-    entity_template,
+    controller_template, dto_template, entity_template, service_template,
 };
 
+
+
+/// Generate controller inside src/{module}/controller.rs and ensure mod declarations.
 pub fn generate_controller(name: String) -> Result<()> {
     println!("Generating controller: {}", name);
-    let filename = format!("src/{}_controller.rs", name);
+
+    // 1. ensure module dir and mod.rs
+    let mdir = ensure_dir(&module_dir(&name))?;
+    let mod_rs = ensure_mod_rs(&mdir)?;
+
+    // 2. ensure module is published at crate root
+    ensure_root_mod(&name)?;
+
+    // 3. create controller file path (controller.rs)
+    let filename = mdir.join("controller.rs");
+
+    // write content
     fs::write(&filename, controller_template(&name))?;
-    println!("Controller {} created at {}", name, filename);
+
+    // 4. ensure `pub mod controller;` is present in src/{module}/mod.rs
+    ensure_pub_mod_decl(&mod_rs, "controller")?;
+
+    println!(
+        "Controller {} created at {}",
+        name,
+        filename.to_string_lossy()
+    );
     Ok(())
 }
 
+/// Generate service inside src/{module}/service.rs and ensure mod declarations.
 pub fn generate_service(name: String) -> Result<()> {
     println!("Generating service: {}", name);
-    let filename = format!("src/{}_service.rs", name);
+
+    // ensure module dir and mod.rs
+    let mdir = ensure_dir(&module_dir(&name))?;
+    let mod_rs = ensure_mod_rs(&mdir)?;
+
+    // ensure root has this module
+    ensure_root_mod(&name)?;
+
+    // create service file
+    let filename = mdir.join("service.rs");
+
     fs::write(&filename, service_template(&name))?;
-    println!("Service {} created at {}", name, filename);
+
+    // ensure `pub mod service;` in src/{module}/mod.rs
+    ensure_pub_mod_decl(&mod_rs, "service")?;
+
+    println!("Service {} created at {}", name, filename.to_string_lossy());
     Ok(())
 }
 
+/// Generate DTO file inside src/{module}/dto/{module}_dto.rs.
+/// Ensure src/{module}/dto/mod.rs and src/{module}/mod.rs include proper declarations.
 pub fn generate_dto(name: String) -> Result<()> {
     println!("Generating dto: {}", name);
-    let filename = format!("src/{}_dto.rs", name);
-    fs::write(&filename, dto_template(&name))?;
-    println!("DTO {} created at {}", name, filename);
+
+    // module dir
+    let mdir = ensure_dir(&module_dir(&name))?;
+    let mod_rs = ensure_mod_rs(&mdir)?;
+
+    // ensure module declared at crate root
+    ensure_root_mod(&name)?;
+
+    // ensure dto subdir and mod.rs
+    let dto_dir = ensure_dir(&mdir.join("dto"))?;
+    let dto_mod_rs = ensure_mod_rs(&dto_dir)?;
+
+    // file name: {module}_dto.rs
+    let dto_filename = format!("{}_dto.rs", name);
+    let full_path = dto_dir.join(&dto_filename);
+
+    fs::write(&full_path, dto_template(&name))?;
+
+    // ensure dto mod is included in module mod.rs: `pub mod dto;`
+    ensure_pub_mod_decl(&mod_rs, "dto")?;
+
+    // ensure the specific dto file is declared in dto/mod.rs: `pub mod {module}_dto;`
+    // (module name may not be valid Rust identifier if user passes weird chars; assume user passes valid identifier)
+    let dto_child = format!("{}_dto", name);
+    ensure_pub_mod_decl(&dto_mod_rs, &dto_child)?;
+
+    println!("DTO {} created at {}", name, full_path.to_string_lossy());
     Ok(())
 }
 
+/// Generate entity file inside src/{module}/entities/{module}.rs.
+/// Ensure src/{module}/entities/mod.rs and src/{module}/mod.rs include proper declarations.
 pub fn generate_entity(name: String) -> Result<()> {
     println!("Generating entity: {}", name);
-    let filename = format!("src/{}_entity.rs", name);
-    fs::write(&filename, entity_template(&name))?;
-    println!("Entity {} created at {}", name, filename);
+
+    // module dir
+    let mdir = ensure_dir(&module_dir(&name))?;
+    let mod_rs = ensure_mod_rs(&mdir)?;
+
+    // ensure module declared at crate root
+    ensure_root_mod(&name)?;
+
+    // ensure entities subdir and mod.rs
+    let ent_dir = ensure_dir(&mdir.join("entities"))?;
+    let ent_mod_rs = ensure_mod_rs(&ent_dir)?;
+
+    // file name: {module}.rs
+    let ent_filename = format!("{}.rs", name);
+    let full_path = ent_dir.join(&ent_filename);
+
+    fs::write(&full_path, entity_template(&name))?;
+
+    // ensure entities mod is included in module mod.rs: `pub mod entities;`
+    ensure_pub_mod_decl(&mod_rs, "entities")?;
+
+    // ensure the specific entity file is declared in entities/mod.rs: `pub mod {module};`
+    ensure_pub_mod_decl(&ent_mod_rs, &name)?;
+
+    println!("Entity {} created at {}", name, full_path.to_string_lossy());
     Ok(())
 }
+
 
 /*pub fn generate_module(name: String) -> Result<()> {
     println!("Generating module: {}", name);

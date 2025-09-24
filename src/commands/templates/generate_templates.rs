@@ -1,4 +1,4 @@
-use crate::utils::utils::capitalize;
+use crate::utils::common::capitalize;
 
 /// Template strings for generated files
 pub fn controller_template(name: &str) -> String {
