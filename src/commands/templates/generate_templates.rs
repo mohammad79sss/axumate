@@ -4,8 +4,7 @@ use crate::utils::common::{capitalize, uppercase};
 pub fn controller_template(name: &str) -> String {
     let cap = capitalize(name);
     format!(
-        r#"
-use axum::{{
+        r#"use axum::{{
     extract::Path,
     http::StatusCode,
     Json,
@@ -53,8 +52,7 @@ pub fn service_template(name: &str) -> String {
     let cap = capitalize(name);
     let upp = uppercase(name);
     format!(
-        r#"
-use crate::{name}::dto::{name}_dto::{{Create{cap}Dto, Update{cap}Dto}};
+        r#"use crate::{name}::dto::{name}_dto::{{Create{cap}Dto, Update{cap}Dto}};
 use crate::{name}::entities::{name}_entity::{cap};
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
@@ -119,8 +117,7 @@ pub fn remove(id: u32) -> String {{
 pub fn dto_template(name: &str) -> String {
     let cap = capitalize(name);
     format!(
-        r#"
-use serde::Deserialize;
+        r#"use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Create{cap}Dto {{
@@ -142,8 +139,7 @@ pub struct Update{cap}Dto {{
 pub fn entity_template(name: &str) -> String {
     let cap = capitalize(name);
     format!(
-        r#"
-use serde::{{Serialize, Deserialize}};
+        r#"use serde::{{Serialize, Deserialize}};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct {cap} {{

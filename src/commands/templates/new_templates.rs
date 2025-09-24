@@ -1,8 +1,7 @@
 /// Template for the generated main.rs file
 pub fn main_template(_name: &str) -> String {
     // you can use `_name` later if you want to customize by project name
-    r#"
-use axum::{
+    r#"use axum::{
     routing::get,
     Router
 };
@@ -22,7 +21,6 @@ async fn main() {
 
     axum::serve(listener, app).await.unwrap();
 }
-
 "#
         .to_string()
 }
