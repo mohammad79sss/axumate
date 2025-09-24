@@ -32,11 +32,12 @@ enum GenerateKind {
     Controller { name: String },
     /// Generate a service
     Service { name: String },
-    /// Generate a entity
+    /// Generate an entity
     Entity { name: String },
     /// Generate a dto
     DTO { name: String },
-/*    Module { name: String },*/
+    /// Generate a module
+    Module { name: String },
 }
 
 fn main() -> Result<()> {
@@ -49,7 +50,7 @@ fn main() -> Result<()> {
             GenerateKind::Service { name } => commands::generate::generate_service(name)?,
             GenerateKind::Entity { name } => commands::generate::generate_entity(name)?,
             GenerateKind::DTO { name } => commands::generate::generate_dto(name)?,
-/*            GenerateKind::Module { name } => commands::generate::generate_module(name)?,*/
+            GenerateKind::Module { name } => commands::generate::generate_module(name)?,
         },
     }
 
