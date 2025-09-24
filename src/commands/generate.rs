@@ -12,28 +12,55 @@ use super::templates::generate_templates::{
 pub fn generate_controller(name: String) -> Result<()> {
     println!("Generating controller: {}", name);
 
-    // 1. ensure module dir and mod.rs
+    // 1️⃣ ensure module dir and mod.rs
     let mdir = ensure_dir(&module_dir(&name))?;
     let mod_rs = ensure_mod_rs(&mdir)?;
 
-    // 2. ensure module is published at crate root
+    // 2️⃣ ensure module is published at crate root
     ensure_root_mod(&name)?;
 
-    // 3. create controller file path ({module}_controller.rs)
+    // 3️⃣ create controller file path ({module}_controller.rs)
     let filename = mdir.join(format!("{}_controller.rs", name));
 
-    // write content
+    // write controller content
     fs::write(&filename, controller_template(&name))?;
 
-    // 4. ensure `pub mod {module}_controller;` is present in src/{module}/mod.rs
+    // 4️⃣ ensure `pub mod {module}_controller;` is present in src/{module}/mod.rs
     let mod_name = format!("{}_controller", name);
     ensure_pub_mod_decl(&mod_rs, &mod_name)?;
 
+    // 5️⃣ Add routes() function to mod.rs if not present
+    let mut mod_content = String::new();
+    fs::File::open(&mod_rs)?.read_to_string(&mut mod_content)?;
+
+    if !mod_content.contains("pub fn routes() -> Router") {
+        let routes_fn = format!(
+            r#"
+use axum::Router;
+use axum::routing::{{get, post, patch, delete}};
+
+pub fn routes() -> Router {{
+    Router::new()
+        .route("/", post({mod_name}::create).get({mod_name}::find_all))
+        .route("/{{id}}", get({mod_name}::find_one)
+            .patch({mod_name}::update)
+            .delete({mod_name}::remove))
+}}
+"#,
+            mod_name = mod_name
+        );
+
+        // append the routes function at the end of mod.rs
+        mod_content.push_str(&routes_fn);
+        fs::File::create(&mod_rs)?.write_all(mod_content.as_bytes())?;
+    }
+
     println!(
-        "Controller {} created at {}",
+        "Controller {} created and routes() added in {}",
         name,
         filename.to_string_lossy()
     );
+
     Ok(())
 }
 
@@ -131,22 +158,21 @@ pub fn generate_entity(name: String) -> Result<()> {
 pub fn generate_module(name: String) -> Result<()> {
     println!("Generating module: {}", name);
 
-    // Generate all module components
-    generate_controller(name.clone())?;
+    // 1️⃣ Generate all module components first
     generate_service(name.clone())?;
     generate_dto(name.clone())?;
     generate_entity(name.clone())?;
+    generate_controller(name.clone())?;
 
-    // Update main.rs
+    // 2️⃣ Update main.rs
     let main_path = Path::new("src/main.rs");
     let mut content = String::new();
     fs::File::open(&main_path)?.read_to_string(&mut content)?;
 
-    // 1. Insert `mod {name};` after the last `use ...;`
+    // --- Insert `mod {name};` after last `use ...;` ---
     let mod_decl = format!("mod {};", name);
     if !content.contains(&mod_decl) {
         if let Some(pos) = content.rfind("use ") {
-            // Find end of line of last use statement
             if let Some(end) = content[pos..].find(';') {
                 let insert_pos = pos + end + 1;
                 content.insert_str(insert_pos, &format!("\n{}", mod_decl));
@@ -156,26 +182,26 @@ pub fn generate_module(name: String) -> Result<()> {
         }
     }
 
-    // 2. Insert `.nest("/name", name::routes())` inside Router::new() chain
+    // --- Insert `.nest("/name", name::routes())` inside Router::new() chain ---
     let nest_line = format!("        .nest(\"/{0}\", {0}::routes())", name);
     if !content.contains(&nest_line) {
-        // Find the line with `Router::new()`
         if let Some(pos) = content.find("Router::new()") {
-            // Find the end of that line or the next semicolon
             if let Some(chain_end) = content[pos..].find(';') {
-                // Insert before semicolon
                 let insert_pos = pos + chain_end;
                 content.insert_str(insert_pos, &format!("\n{}", nest_line));
             }
         }
     }
 
+    // Write back the updated main.rs
     fs::File::create(&main_path)?.write_all(content.as_bytes())?;
+
     println!("main.rs updated with module `{}`", name);
     println!("Module {} generated successfully!", name);
 
     Ok(())
 }
+
 
 
 
