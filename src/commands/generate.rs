@@ -9,7 +9,6 @@ use super::templates::generate_templates::{
 };
 
 
-
 /// Generate controller inside src/{module}/controller.rs and ensure mod declarations.
 pub fn generate_controller(name: String) -> Result<()> {
     println!("Generating controller: {}", name);
