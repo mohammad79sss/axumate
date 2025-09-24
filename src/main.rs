@@ -1,5 +1,5 @@
 mod commands;
-
+mod utils;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::Path;
@@ -32,6 +32,12 @@ enum GenerateKind {
     Controller { name: String },
     /// Generate a service
     Service { name: String },
+    /// Generate a entity
+    Entity { name: String },
+    /// Generate a dto
+    DTO { name: String },
+    /// Generate a module
+/*    Module { name: String },*/
 }
 
 fn main() -> Result<()> {
@@ -42,6 +48,9 @@ fn main() -> Result<()> {
         Commands::Generate { kind } => match kind {
             GenerateKind::Controller { name } => commands::generate::generate_controller(name)?,
             GenerateKind::Service { name } => commands::generate::generate_service(name)?,
+            GenerateKind::Entity { name } => commands::generate::generate_entity(name)?,
+            GenerateKind::DTO { name } => commands::generate::generate_dto(name)?,
+/*            GenerateKind::Module { name } => commands::generate::generate_module(name)?,*/
         },
     }
 

@@ -2,7 +2,8 @@ use anyhow::Result;
 use std::process::Command;
 use std::path::Path;
 
-/// create_new_project actually runs cargo new and cargo add, which will download dependencies — too heavy for a normal unit test.
+use super::templates::new_templates::main_template;
+
 pub fn create_new_project(name: String) -> Result<()> {
     println!("Creating new Cargo project: {}", name);
 
@@ -29,28 +30,9 @@ pub fn create_new_project(name: String) -> Result<()> {
         }
     }
 
-    // Step 3: Replace main.rs
+    // Step 3: Replace main.rs with our template
     let main_rs_path = project_dir.join("src/main.rs");
-    std::fs::write(
-        main_rs_path,
-        r#"
-use axum::{Router, routing::get};
-use std::net::SocketAddr;
-
-#[tokio::main]
-async fn main() {
-    let app = Router::new().route("/", get(|| async { "Hello, Axum!" }));
-
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("Listening on {}", addr);
-
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
-"#,
-    )?;
+    std::fs::write(main_rs_path, main_template(&name))?;
 
     println!("Axum project '{}' created successfully!", name);
     Ok(())
