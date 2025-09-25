@@ -207,6 +207,7 @@ pub fn generate_module(name: String) -> Result<()> {
     Ok(())
 }
 
+
 pub fn generate_middleware(name: String) -> Result<()> {
     println!("Generating middleware: {}", name);
 
@@ -214,7 +215,6 @@ pub fn generate_middleware(name: String) -> Result<()> {
     let middlewares_path = Path::new("src/middlewares.rs");
 
     if middlewares_path.exists() {
-        // File exists → append new middleware function if not already present
         let mut content = fs::read_to_string(&middlewares_path)?;
         let func_identifier = format!("pub async fn {}_middleware", name);
         if !content.contains(&func_identifier) {
@@ -225,7 +225,6 @@ pub fn generate_middleware(name: String) -> Result<()> {
             println!("Middleware `{}` already exists in middlewares.rs", name);
         }
     } else {
-        // File doesn’t exist → create with dependencies + function
         let mut content = String::new();
         content.push_str(&middleware_dependencies_template());
         content.push_str("\n");
@@ -252,23 +251,21 @@ pub fn generate_middleware(name: String) -> Result<()> {
         }
     }
 
-    // Insert `.layer(middleware::from_fn(middlewares::{name}_middleware))` in Router chain
+    // Insert `.layer(...)` **right after `Router::new()`**
     let layer_line = format!(
-        "        .layer(middleware::from_fn(middlewares::{}_middleware))",
+        "    .layer(middleware::from_fn(middlewares::{}_middleware))",
         name
     );
     if !content.contains(&layer_line) {
         if let Some(pos) = content.find("Router::new()") {
-            if let Some(chain_end) = content[pos..].find(';') {
-                let insert_pos = pos + chain_end;
-                content.insert_str(insert_pos, &format!("\n{}", layer_line));
-            }
+            let insert_pos = pos + "Router::new()".len();
+            content.insert_str(insert_pos, &format!("\n{}", layer_line));
         }
     }
 
     fs::write(&main_path, content)?;
 
-    println!("main.rs updated with middleware `{}`", name);
+    println!("main.rs updated with middleware `{}` at the top of Router::new()", name);
     println!("Middleware `{}` generated successfully!", name);
 
     Ok(())
