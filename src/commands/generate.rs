@@ -5,7 +5,12 @@ use std::path::{Path, PathBuf};
 use crate::utils::file::*;
 
 use super::templates::generate_templates::{
-    controller_template, dto_template, entity_template, service_template,
+    controller_template,
+    dto_template,
+    entity_template,
+    service_template,
+    middleware_dependencies_template,
+    middleware_function_template
 };
 
 /// Generate controller inside src/{module}/{module}_controller.rs and ensure mod declarations.
@@ -202,9 +207,73 @@ pub fn generate_module(name: String) -> Result<()> {
     Ok(())
 }
 
+pub fn generate_middleware(name: String) -> Result<()> {
+    println!("Generating middleware: {}", name);
 
+    // --- Step 1: Ensure `src/middlewares.rs` exists and has the function ---
+    let middlewares_path = Path::new("src/middlewares.rs");
 
+    if middlewares_path.exists() {
+        // File exists → append new middleware function if not already present
+        let mut content = fs::read_to_string(&middlewares_path)?;
+        let func_identifier = format!("pub async fn {}_middleware", name);
+        if !content.contains(&func_identifier) {
+            content.push_str(&middleware_function_template(&name));
+            fs::write(&middlewares_path, content)?;
+            println!("Added `{}` to middlewares.rs", func_identifier);
+        } else {
+            println!("Middleware `{}` already exists in middlewares.rs", name);
+        }
+    } else {
+        // File doesn’t exist → create with dependencies + function
+        let mut content = String::new();
+        content.push_str(&middleware_dependencies_template());
+        content.push_str("\n");
+        content.push_str(&middleware_function_template(&name));
+        fs::write(&middlewares_path, content)?;
+        println!("Created middlewares.rs with `{}`", name);
+    }
 
+    // --- Step 2: Update main.rs ---
+    let main_path = Path::new("src/main.rs");
+    let mut content = String::new();
+    fs::File::open(&main_path)?.read_to_string(&mut content)?;
+
+    // Insert `mod middlewares;` if missing
+    let mod_decl = "mod middlewares;";
+    if !content.contains(mod_decl) {
+        if let Some(pos) = content.rfind("use ") {
+            if let Some(end) = content[pos..].find(';') {
+                let insert_pos = pos + end + 1;
+                content.insert_str(insert_pos, &format!("\n{}", mod_decl));
+            }
+        } else {
+            content = format!("{}\n{}", mod_decl, content);
+        }
+    }
+
+    // Insert `.layer(middleware::from_fn(middlewares::{name}_middleware))` in Router chain
+    let layer_line = format!(
+        "        .layer(middleware::from_fn(middlewares::{}_middleware))",
+        name
+    );
+    if !content.contains(&layer_line) {
+        if let Some(pos) = content.find("Router::new()") {
+            if let Some(chain_end) = content[pos..].find(';') {
+                let insert_pos = pos + chain_end;
+                content.insert_str(insert_pos, &format!("\n{}", layer_line));
+            }
+        }
+    }
+
+    fs::write(&main_path, content)?;
+
+    println!("main.rs updated with middleware `{}`", name);
+    println!("Middleware `{}` generated successfully!", name);
+
+    Ok(())
+}
+//===================================tests==========================================
 
 #[cfg(test)]
 mod tests {

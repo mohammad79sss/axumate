@@ -2,6 +2,7 @@
 pub fn main_template(_name: &str) -> String {
     // you can use `_name` later if you want to customize by project name
     r#"use axum::{
+    middleware,
     routing::get,
     Router
 };

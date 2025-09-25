@@ -38,6 +38,8 @@ enum GenerateKind {
     DTO { name: String },
     /// Generate a module
     Module { name: String },
+    /// Generate a module
+    Middleware { name: String },
 }
 
 fn main() -> Result<()> {
@@ -51,6 +53,7 @@ fn main() -> Result<()> {
             GenerateKind::Entity { name } => commands::generate::generate_entity(name)?,
             GenerateKind::DTO { name } => commands::generate::generate_dto(name)?,
             GenerateKind::Module { name } => commands::generate::generate_module(name)?,
+            GenerateKind::Middleware { name } => commands::generate::generate_middleware(name)?,
         },
     }
 
