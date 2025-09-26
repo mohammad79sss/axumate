@@ -1,6 +1,6 @@
 use std::fs;
 use std::env;
-use axumate::commands::{ generate::{generate_controller, generate_service, generate_dto, generate_entity}};
+use axumate::commands::{ generate_module::{generate_controller, generate_service, generate_dto, generate_entity}};
 
 /// create_new_project actually runs cargo new and cargo add, which will download dependencies — too heavy for a normal unit test.
 #[test]

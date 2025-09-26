@@ -48,12 +48,12 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::New { name } => commands::new::create_new_project(name)?,
         Commands::Generate { kind } => match kind {
-            GenerateKind::Controller { name } => commands::generate::generate_controller(name)?,
-            GenerateKind::Service { name } => commands::generate::generate_service(name)?,
-            GenerateKind::Entity { name } => commands::generate::generate_entity(name)?,
-            GenerateKind::DTO { name } => commands::generate::generate_dto(name)?,
-            GenerateKind::Module { name } => commands::generate::generate_module(name)?,
-            GenerateKind::Middleware { name } => commands::generate::generate_middleware(name)?,
+            GenerateKind::Module { name } => commands::generate_module::generate_module(name)?,
+            GenerateKind::Controller { name } => commands::generate_item::generate_controller(name)?,
+            GenerateKind::Service { name } => commands::generate_item::generate_service(name)?,
+            GenerateKind::Entity { name } => commands::generate_item::generate_entity(name)?,
+            GenerateKind::DTO { name } => commands::generate_item::generate_dto(name)?,
+            GenerateKind::Middleware { name } => commands::generate_item::generate_middleware(name)?,
         },
     }
 

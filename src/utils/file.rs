@@ -78,3 +78,17 @@ pub fn ensure_root_mod(module_name: &str) -> anyhow::Result<()> {
 pub fn module_dir(module: &str) -> PathBuf {
     Path::new("src").join(module)
 }
+
+/// Decide which mod file to update:
+/// - If current dir is `src/`, return `lib.rs`
+/// - Otherwise, return the `mod.rs` of the current dir
+pub fn current_mod_file() -> PathBuf {
+    let cwd = std::env::current_dir().unwrap();
+
+    if cwd.ends_with("src") {
+        cwd.join("lib.rs")
+    } else {
+        cwd.join("mod.rs")
+    }
+}
+

@@ -152,24 +152,3 @@ pub struct {cap} {{
     )
 }
 
-pub fn middleware_dependencies_template() -> String {
-    format!(
-        r#"use axum::extract::Request;
-use axum::middleware::Next;
-use axum::response::Response;
-"#
-    )
-}
-
-pub fn middleware_function_template(name: &str) -> String {
-    format!(
-        r#"pub async fn {name}_middleware(req: Request, next: Next) -> Response {{
-    println!("➡️ [{name}_middleware] {{}} {{}}", req.method(), req.uri().path());
-    let res = next.run(req).await;
-    println!("⬅️ [{name}_middleware] {{}}", res.status());
-    res
-}}
-"#,
-        name = name
-    )
-}
