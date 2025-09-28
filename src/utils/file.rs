@@ -91,4 +91,3 @@ pub fn current_mod_file() -> PathBuf {
         cwd.join("mod.rs")
     }
 }
-

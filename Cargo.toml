@@ -1,10 +1,14 @@
 [package]
 name = "axumate"
-version = "0.1.0"
+version = "0.1.0"                  # bump before every publish
 edition = "2024"
-authors = ["Mohammad Hossein Sadeghi <mh.sadeghi.dev@gmail.com>"]
-description = "a powerful CLI for Axum framework inspired by NestJS CLI"
+description = "A CLI tool for Axum framework."
 license = "MIT"
+repository = "https://github.com/mohammad79sss/axumate"
+homepage = "https://github.com/mohammad79sss/axumate"
+documentation = "https://github.com/mohammad79sss/axumate"
+keywords = ["cli", "axum", "tool"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.100"

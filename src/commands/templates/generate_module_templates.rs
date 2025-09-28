@@ -151,4 +151,3 @@ pub struct {cap} {{
         cap = cap
     )
 }
-
