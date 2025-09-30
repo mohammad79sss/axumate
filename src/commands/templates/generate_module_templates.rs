@@ -1,4 +1,4 @@
-use crate::utils::common::{capitalize, uppercase};
+use crate::utils::common::{capitalize};
 
 /// Template strings for generated files
 pub fn controller_template(name: &str) -> String {
@@ -50,7 +50,7 @@ pub async fn remove(Path(id): Path<u32>) -> (StatusCode, String) {{
 
 pub fn service_template(name: &str) -> String {
     let cap = capitalize(name);
-    let upp = uppercase(name);
+    let upp = name.to_uppercase();
     format!(
         r#"use crate::{name}::dto::{name}_dto::{{Create{cap}Dto, Update{cap}Dto}};
 use crate::{name}::entities::{name}_entity::{cap};
