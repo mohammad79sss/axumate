@@ -21,13 +21,13 @@ Axumate is designed for developers who want to:
 
 ## 📦 Getting Started with the CLI
 
-### 1 Install the CLI
+### 1- Install the CLI
 
 ```bash
 cargo install axumate
 ```
 
-### 2 Create a new project
+### 2- Create a new project
 
 ```bash
 axumate new my_project
@@ -35,7 +35,7 @@ axumate new my_project
 
 This generates a minimal Axum project and installs the required dependencies.
 
-### 3 Generate a module
+### 3- Generate a module
 
 ```bash
 cd my_project
@@ -58,7 +58,7 @@ src/
 └── main.rs
 ```
 
-### 4 Run the project
+### 4- Run the project
 
 ```bash
 cargo run
